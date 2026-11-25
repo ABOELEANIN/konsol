@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import ShipmentActions from './ShipmentActions'
+import StepActions from './StepActions'
 
 const MODULE_COLORS: Record<string, { icon: React.ReactNode; badge: string; ring: string }> = {
   FIN: { icon: <ArrowDownCircle size={18} className="text-blue-400" />,   badge: 'bg-blue-500/15 text-blue-300 border-blue-500/30',   ring: 'ring-blue-500/40' },
@@ -288,22 +289,26 @@ export default async function ShipmentDetailPage({ params }: { params: { id: str
                             )}
                           </div>
 
-                          {/* Status + timing */}
-                          <div className="flex items-center gap-3 shrink-0">
+                          {/* Status + actions */}
+                          <div className="flex items-center gap-3 shrink-0 relative">
                             {ss?.due_at && statusKey !== 'COMPLETED' && (
                               <span className="text-gray-500 text-xs hidden lg:inline">
                                 Due {new Date(ss.due_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                               </span>
                             )}
-                            {ss?.completed_at && (
+                            {ss?.completed_at && statusKey === 'COMPLETED' && (
                               <span className="text-gray-500 text-xs hidden lg:inline">
                                 {new Date(ss.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                               </span>
                             )}
-                            <span className={`flex items-center gap-1 text-xs ${stepStyle.className}`}>
-                              {stepStyle.icon}
-                              <span className="hidden sm:inline">{stepStyle.label}</span>
-                            </span>
+                            <StepActions
+                              shipmentId={params.id}
+                              shipmentStepId={ss?.id ?? null}
+                              stepId={step.id}
+                              tenantId={userRecord.tenant_id}
+                              currentStatus={statusKey as any}
+                              stepName={step.name}
+                            />
                           </div>
                         </div>
                       )

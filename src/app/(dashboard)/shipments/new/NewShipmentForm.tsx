@@ -78,7 +78,7 @@ export default function NewShipmentForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!selectedModule || !reference.trim()) return
+    if (!selectedModule || !selectedTemplate || !reference.trim()) return
     setError(null)
 
     startTransition(async () => {
@@ -87,7 +87,7 @@ export default function NewShipmentForm({
         .insert({
           tenant_id: tenantId,
           module_id: selectedModule.id,
-          template_id: selectedTemplate || null,
+          template_id: selectedTemplate,
           reference: reference.trim(),
           description: description.trim() || null,
           counterparty_id: counterpartyId || null,
@@ -98,12 +98,43 @@ export default function NewShipmentForm({
         .select('id')
         .single()
 
-      if (insertError) {
-        setError(insertError.message)
+      if (insertError || !data) {
+        setError(insertError?.message ?? 'Failed to create shipment')
         return
       }
 
-      router.push(`/shipments`)
+      const shipmentId = data.id
+
+      // Auto-create shipment_steps for all steps in the template
+      if (selectedTemplate) {
+        const { data: phases } = await supabase
+          .from('phases')
+          .select('id')
+          .eq('template_id', selectedTemplate)
+          .eq('tenant_id', tenantId)
+          .eq('is_active', true)
+
+        if (phases && phases.length > 0) {
+          const { data: steps } = await supabase
+            .from('steps')
+            .select('id')
+            .in('phase_id', phases.map(p => p.id))
+            .eq('is_active', true)
+
+          if (steps && steps.length > 0) {
+            await supabase.from('shipment_steps').insert(
+              steps.map(s => ({
+                shipment_id: shipmentId,
+                tenant_id: tenantId,
+                step_id: s.id,
+                status: 'PENDING',
+              }))
+            )
+          }
+        }
+      }
+
+      router.push(`/shipments/${shipmentId}`)
       router.refresh()
     })
   }
