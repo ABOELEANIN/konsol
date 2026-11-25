@@ -115,8 +115,10 @@ export default async function ShipmentsPage() {
                     className={`border-b border-konsol-700 hover:bg-konsol-700/50 cursor-pointer transition-colors ${i === shipments.length - 1 ? 'border-0' : ''}`}
                   >
                     <td className="px-6 py-4">
-                      <div className="text-white font-medium">{s.reference}</div>
-                      {s.description && <div className="text-gray-500 text-xs mt-0.5 truncate max-w-[200px]">{s.description}</div>}
+                      <Link href={`/shipments/${s.id}`} className="block">
+                        <div className="text-white font-medium hover:text-konsol-accent transition-colors">{s.reference}</div>
+                        {s.description && <div className="text-gray-500 text-xs mt-0.5 truncate max-w-[200px]">{s.description}</div>}
+                      </Link>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5">
